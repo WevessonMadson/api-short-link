@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsUrl, IsInt } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsUrl, IsString } from 'class-validator';
 
 export class CreateLinkDto {
   @IsUrl()
@@ -6,6 +6,6 @@ export class CreateLinkDto {
   originalUrl: string;
 
   @IsOptional()
-  @IsInt()
-  userId?: number;
+  @IsString()
+  shortCode?: string;
 }

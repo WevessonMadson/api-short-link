@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { randomBytes } from 'crypto';
@@ -11,19 +11,27 @@ export class LinksService {
     return randomBytes(length).toString('base64url').substring(0, length);
   }
 
-  async create(dto: CreateLinkDto) {
-    const shortCode = this.generateShortCode();
+  async create(dto: CreateLinkDto, userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('Usuário não encotrado');
+
+    const shortCode = dto.shortCode || this.generateShortCode();
+
+    const link = await this.prisma.link.findUnique({ where: { shortCode } });
+    if (link) throw new ConflictException('esse código personalizado já é usado');
+
     return this.prisma.link.create({
       data: {
         originalUrl: dto.originalUrl,
         shortCode,
-        userId: dto.userId,
+        userId,
       },
     });
   }
 
-  async findAll() {
+  async findAll(userId: number) {
     return this.prisma.link.findMany({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
     });
   }

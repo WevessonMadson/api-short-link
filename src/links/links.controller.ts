@@ -1,19 +1,24 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { LinksService } from './links.service';
 import { CreateLinkDto } from './dto/create-link.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('links')
 export class LinksController {
   constructor(private readonly linksService: LinksService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateLinkDto) {
-    return this.linksService.create(dto);
+  create(@Body() dto: CreateLinkDto, @Req() req) {
+    const userId = req.user.userId;
+    return this.linksService.create(dto, userId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.linksService.findAll();
+  findAll(@Req() req) {
+    const userId = req.user.userId;
+    return this.linksService.findAll(userId);
   }
 
   @Get(':shortCode')
