@@ -1,0 +1,161 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-01-08T15:00:00.000Z",
+  "__export_source": "shortlink-nestjs-backend",
+  "resources": [
+    {
+      "_id": "wrk_01",
+      "name": "ShortLink - Local API",
+      "description": "Coleção de testes para o backend NestJS (ShortLink)",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_01",
+      "parentId": "wrk_01",
+      "_type": "environment",
+      "name": "Localhost",
+      "data": {
+        "base_url": "http://localhost:3001/api",
+        "token": ""
+      }
+    },
+
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_01",
+      "name": "Auth"
+    },
+    {
+      "_id": "fld_links",
+      "_type": "request_group",
+      "parentId": "wrk_01",
+      "name": "Links"
+    },
+
+    {
+      "_id": "req_register",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Register User",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/register",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"123456\",\n  \"name\": \"Wevesson\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ]
+    },
+
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login User",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"123456\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ]
+    },
+
+    {
+      "_id": "req_google",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login with Google (Redirect)",
+      "method": "GET",
+      "url": "{{ base_url }}/auth/google",
+      "headers": []
+    },
+
+    {
+      "_id": "req_create_link",
+      "_type": "request",
+      "parentId": "fld_links",
+      "name": "Create Link",
+      "method": "POST",
+      "url": "{{ base_url }}/links",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"originalUrl\": \"https://www.google.com\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ token }}" }
+      ]
+    },
+
+    {
+      "_id": "req_get_links",
+      "_type": "request",
+      "parentId": "fld_links",
+      "name": "Get All Links",
+      "method": "GET",
+      "url": "{{ base_url }}/links",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" }
+      ]
+    },
+
+    {
+      "_id": "req_get_link_by_code",
+      "_type": "request",
+      "parentId": "fld_links",
+      "name": "Get Link by ShortCode",
+      "method": "GET",
+      "url": "{{ base_url }}/links/{{ shortCode }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" }
+      ]
+    },
+
+    {
+      "_id": "req_increment_clicks",
+      "_type": "request",
+      "parentId": "fld_links",
+      "name": "Increment Click Count",
+      "method": "POST",
+      "url": "{{ base_url }}/links/{{ shortCode }}/click",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" }
+      ]
+    },
+
+    {
+      "_id": "req_update_link",
+      "_type": "request",
+      "parentId": "fld_links",
+      "name": "Update Link",
+      "method": "PUT",
+      "url": "{{ base_url }}/links/{{ linkId }}",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"originalUrl\": \"https://updated-url.com\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ token }}" }
+      ]
+    },
+
+    {
+      "_id": "req_delete_link",
+      "_type": "request",
+      "parentId": "fld_links",
+      "name": "Delete Link",
+      "method": "DELETE",
+      "url": "{{ base_url }}/links/{{ linkId }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" }
+      ]
+    }
+  ]
+}
