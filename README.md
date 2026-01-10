@@ -1,23 +1,58 @@
-# monitoramento-vr
+# 🔗 api-short-link
 
-NestJS backend scaffold to receive monitoring data via `POST /monitoramento`.
-Built with NestJS + Prisma (SQLite) for **local development** and easy switch to Postgres in production.
+## 📌 Descrição
 
-## Features
-- POST `/monitoramento` accepts an array of shops (or single shop) JSON.
-- Validates payload using class-validator.
-- Uses Prisma with SQLite locally (`dev.db`).
-- Upserts by `cnpj_loja` and stores `updatedAt`.
+**api-short-link** é uma API REST desenvolvida com **NestJS**, **TypeScript** e **Prisma** para fornecer os endpoints necessários à criação e gerenciamento de links encurtados (“short links”).  
+A API aceita URLs longas e retorna versões encurtadas, além de permitir redirecionamento ou consulta das URLs originais por meio de identificadores únicos.
 
-## Quick start (local)
-1. `npm install`
-2. `npm run prisma:generate`
-3. `npm run prisma:migrate`  # creates dev.db and initial migration
-4. `npm run start:dev`
-5. POST JSON to `http://localhost:3000/monitoramento`
+O projeto foi estruturado de forma modular, segura e escalável, com foco na organização de rotas, validação de dados e integração com banco de dados, facilitando seu uso em aplicações frontend ou serviços externos.
 
-## Deploy notes (Vercel)
-- Vercel ephemeral filesystem means SQLite file won't persist across deployments.
-- For production, create a free Postgres provider (Neon, Supabase free tier, Render free) and set `DATABASE_URL` env var in Vercel.
-- Prisma works with Postgres with minimal changes.
+---
 
+## 🧠 Tecnologias utilizadas
+
+O projeto foi construído com as seguintes tecnologias:
+
+- **NestJS** — Framework Node.js para construção de APIs modulares e escaláveis.
+- **TypeScript** — Tipagem estática para maior confiabilidade e clareza no código.
+- **Prisma** — ORM moderno para comunicação com banco de dados.
+- **Node.js** — Plataforma de execução JavaScript no backend.
+- **PostgreSQL** (ou outro banco relacional) — Armazenamento dos dados de URLs encurtadas.
+- **Vercel / Render / Railway** — Plataformas possíveis para deploy da API.
+- **ESLint** — Ferramenta de linting para manter o código consistente.
+
+---
+
+## 🚀 Funcionalidades
+
+- ✂️ Endpoint para **encurtar URLs longas** através de requisições POST.
+- 🔍 Endpoint para **buscar informações de um short link** via identificador.
+- 🔄 Redirecionamento automático ou retorno do link original.
+- 🧪 Validação de URLs, tratamento de erros e respostas padronizadas.
+- 📦 Integração com banco de dados usando **Prisma Migrations**.
+- 🔧 Estrutura modular e organizada conforme melhores práticas de APIs REST.
+
+---
+
+## 📁 Estrutura do projeto
+
+```text
+api-short-link/
+├── example/                # Exemplos de requisições ou scripts auxiliares
+├── prisma/                 # Prisma schema e migrations
+│   ├── migrations/
+│   └── schema.prisma
+├── src/
+│   ├── modules/            # Módulos de domínio (ex: short-link)
+│   ├── common/             # Utilitários, filtros, interceptors
+│   ├── main.ts             # Ponto de entrada da aplicação
+│   └── app.module.ts       # Configuração dos módulos
+├── .env.example            # Exemplo de variáveis de ambiente
+├── .gitignore
+├── README.md
+├── package.json
+├── tsconfig.json
+├── tsconfig.build.json
+├── prisma/
+├── vercel.json             # Configuração de deploy (quando aplicável)
+└── eslint.config.js
