@@ -42,6 +42,9 @@ export class LinksService {
       where: { shortCode },
     });
     if (!link) throw new NotFoundException('Link not found');
+
+    this.incrementClicks(shortCode);
+
     return link;
   }
 
