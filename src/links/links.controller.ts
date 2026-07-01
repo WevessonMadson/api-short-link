@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from 
 import { LinksService } from './links.service';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UpdateLinkDto } from './dto/update-link.dto';
 
 @Controller('links')
 export class LinksController {
@@ -32,8 +33,8 @@ export class LinksController {
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body('originalUrl') url: string) {
-    return this.linksService.update(id, url);
+  update(@Param('id') id: number, @Body() updateLinkDto: UpdateLinkDto) {
+    return this.linksService.update(id, updateLinkDto);
   }
 
   @Delete(':id')

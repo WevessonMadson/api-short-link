@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { randomBytes } from 'crypto';
+import { UpdateLinkDto } from './dto/update-link.dto';
 
 @Injectable()
 export class LinksService {
@@ -52,10 +53,10 @@ export class LinksService {
     return link;
   }
 
-  async update(id: number, newUrl: string) {
+  async update(id: number, updateLinkDto: UpdateLinkDto) {
     return this.prisma.link.update({
       where: { id },
-      data: { originalUrl: newUrl },
+      data: updateLinkDto,
     });
   }
 
