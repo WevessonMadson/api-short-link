@@ -58,7 +58,14 @@ export class LinksService {
 
   async update(id: number, updateLinkDto: UpdateLinkDto) {
     if (updateLinkDto.shortCode) {
-      const link = await this.prisma.link.findUnique({ where: { shortCode: updateLinkDto.shortCode } });
+      const link = await this.prisma.link.findFirst({ 
+        where: {
+          AND: [
+            { shortCode: updateLinkDto.shortCode },
+            { id: { not: id } }
+          ]
+        }
+        });
       if (link) throw new ConflictException('esse código personalizado já é usado');
     }
 
