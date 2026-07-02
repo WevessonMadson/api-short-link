@@ -22,7 +22,7 @@ export class LinksController {
     return this.linksService.findAll(userId);
   }
 
-  @Get(':shortCode')
+  @Get('/r/:shortCode')
   findOne(@Param('shortCode') shortCode: string) {
     return this.linksService.findByCode(shortCode);
   }
