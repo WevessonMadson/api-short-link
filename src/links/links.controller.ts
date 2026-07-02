@@ -32,11 +32,13 @@ export class LinksController {
     return this.linksService.incrementClicks(shortCode);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   update(@Param('id') id: number, @Body() updateLinkDto: UpdateLinkDto) {
     return this.linksService.update(id, updateLinkDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.linksService.remove(id);
