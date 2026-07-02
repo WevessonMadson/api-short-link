@@ -10,14 +10,14 @@ export class LinksController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateLinkDto, @Req() req) {
+  create(@Body() dto: CreateLinkDto, @Req() req: any) {
     const userId = req.user.userId;
     return this.linksService.create(dto, userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Req() req) {
+  findAll(@Req() req: any) {
     const userId = req.user.userId;
     return this.linksService.findAll(userId);
   }
@@ -25,11 +25,6 @@ export class LinksController {
   @Get(':shortCode')
   findOne(@Param('shortCode') shortCode: string) {
     return this.linksService.findByCode(shortCode);
-  }
-
-  @Post(':shortCode/click')
-  increment(@Param('shortCode') shortCode: string) {
-    return this.linksService.incrementClicks(shortCode);
   }
 
   @UseGuards(JwtAuthGuard)
