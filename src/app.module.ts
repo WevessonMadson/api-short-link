@@ -3,9 +3,10 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AppController } from './app.controller';
 import { LinksModule } from './links/links.module';
+import { CollaborationModule } from './collaboration/collaboration.module';
 
 @Module({
-    imports: [PrismaModule, AuthModule, LinksModule],
+    imports: [PrismaModule, AuthModule, LinksModule, CollaborationModule],
     controllers: [AppController],
 })
 export class AppModule {}
