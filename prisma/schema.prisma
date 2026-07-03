@@ -3,27 +3,116 @@ generator client {
 }
 
 datasource db {
-  provider = "postgres"
+  provider  = "postgres"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id        Int  @id @default(autoincrement())
-  email         String?  @unique
-  password      String?
-  name          String?
-  googleId      String?  @unique
-  createdAt DateTime @default(now())
-  links     Link[]
+  id                       Int               @id @default(autoincrement())
+  email                    String?           @unique
+  password                 String?
+  name                     String?
+  googleId                 String?           @unique
+  createdAt                DateTime          @default(now())
+  links                    Link[]
+  sentShareInvitations     ShareInvitation[] @relation("SentShareInvitations")
+  receivedShareInvitations ShareInvitation[] @relation("ReceivedShareInvitations")
+  receivedSharedLinks      SharedLink[]      @relation("ReceivedSharedLinks")
 }
 
 model Link {
-  id          Int   @id @default(autoincrement())
-  originalUrl String
-  shortCode   String   @unique
-  clicks      Int      @default(0)
-  createdAt   DateTime @default(now())
-  user        User?    @relation(fields: [userId], references: [id])
-  userId      Int?
+  id                   Int                   @id @default(autoincrement())
+  originalUrl          String
+  shortCode            String                @unique
+  clicks               Int                   @default(0)
+  createdAt            DateTime              @default(now())
+  user                 User?                 @relation(fields: [userId], references: [id])
+  userId               Int?
+  shareInvitationItems ShareInvitationLink[]
+  sharedLinks          SharedLink[]
+}
+
+enum ShareInvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum SharePermission {
+  VIEW
+  EDIT
+  MANAGE
+}
+
+model ShareInvitation {
+  id Int @id @default(autoincrement())
+
+  ownerId    Int
+  receiverId Int
+
+  status ShareInvitationStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  acceptedAt  DateTime?
+  rejectedAt  DateTime?
+  cancelledAt DateTime?
+
+  owner User @relation("SentShareInvitations", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  receiver User @relation("ReceivedShareInvitations", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  items ShareInvitationLink[]
+
+  @@index([ownerId])
+  @@index([receiverId])
+  @@index([status])
+  @@index([receiverId, status])
+  @@index([ownerId, receiverId])
+}
+
+model ShareInvitationLink {
+  id Int @id @default(autoincrement())
+
+  invitationId Int
+  linkId       Int
+
+  createdAt DateTime @default(now())
+
+  invitation ShareInvitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@unique([invitationId, linkId])
+  @@index([invitationId])
+  @@index([linkId])
+}
+
+model SharedLink {
+  id Int @id @default(autoincrement())
+
+  invitationId Int?
+
+  linkId Int
+
+  receiverId Int
+
+  permission SharePermission
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  receiver User @relation("ReceivedSharedLinks", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([linkId, receiverId])
+  @@index([receiverId])
+  @@index([linkId])
+  @@index([invitationId])
+  @@index([receiverId, permission])
+  @@index([receiverId, createdAt])
 }
