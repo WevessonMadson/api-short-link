@@ -6,7 +6,7 @@ export class CreateShareInvitationDto {
     @ArrayUnique()
     @ArrayMinSize(1)
     @IsString({ each: true })
-    readonly usernames: string[];
+    readonly emails: string[];
 
     @IsArray()
     @ArrayUnique()

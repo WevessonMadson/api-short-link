@@ -6,7 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CollaborationService {
     constructor(private readonly prisma: PrismaService) { };
 
-    private async validateUsers(usernames: string[]) {
+    private async validateEmails(usernames: string[]) {
         const users = await this.prisma.user.findMany({
             where: {
                 email: {
@@ -16,19 +16,19 @@ export class CollaborationService {
             select: { id: true, email: true },
         });
 
-        const foundUsernames = users.map(user => user.email);
-        const invalidUsernames = usernames.filter(username => !foundUsernames.includes(username));
+        const foundEmails = users.map(user => user.email);
+        const invalidEmails = usernames.filter(username => !foundEmails.includes(username));
 
-        if (invalidUsernames.length > 0) throw new BadRequestException({
+        if (invalidEmails.length > 0) throw new BadRequestException({
             message: "Alguns usuários não foram encontrados",
-            invalidUsernames,
+            invalidEmails,
         });
 
         return users;
     };
 
     async share(userId: number, dto: CreateShareInvitationDto) {
-        const users = await this.validateUsers(dto.usernames);
+        const users = await this.validateEmails(dto.emails);
 
         return {
             success: true,
