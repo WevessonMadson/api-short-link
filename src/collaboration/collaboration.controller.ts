@@ -13,6 +13,6 @@ export class CollaborationController {
     @Body() dto: CreateShareInvitationDto,
     @Req() req: any
   ) {
-    return this.collaborationService.share(req.user.userId, dto);
+    return this.collaborationService.share(req.user, dto);
   }
 }
