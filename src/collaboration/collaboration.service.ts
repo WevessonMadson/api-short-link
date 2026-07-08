@@ -35,13 +35,31 @@ export class CollaborationService {
         }
     };
 
+    private async validateLinks(userId: number, linkIds: number[]) {
+        const foundIds = await this.prisma.link.findMany({
+            where: {
+                id: { in: linkIds },
+                userId,
+            },
+            select: { id: true },
+        });
+
+        if (foundIds.length < linkIds.length) throw new BadRequestException("Um ou mais links são inválidos ou não pertencem a você.");
+
+        return foundIds;
+    }
+
     async share(user: { userId: number, email: string } , dto: CreateShareInvitationDto) {
         await this.validateSelfShare(user.email, dto.emails);
         
         const users = await this.validateEmails(dto.emails);
 
+        const foundLinks = await this.validateLinks(user.userId, dto.linkIds);
+
         return {
             success: true,
+            users,
+            foundLinks
         };
     };
 }
