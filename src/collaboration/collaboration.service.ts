@@ -201,4 +201,22 @@ export class CollaborationService {
 
         return invitation;
     }
+
+    async rejectInvitation(userId: number, invitationId: number) {
+        const invitation = await this.findPendingInvitation(userId, invitationId);
+
+        await this.prisma.shareInvitation.update({
+            where: {
+                id: invitationId
+            },
+
+            data: {
+                status: ShareInvitationStatus.REJECTED,
+                rejectedAt: new Date(),
+            }
+        });
+
+        return { sucess: true }
+
+    }
 }
