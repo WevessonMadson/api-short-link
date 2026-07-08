@@ -120,4 +120,37 @@ export class CollaborationService {
             foundLinks
         };
     };
+
+    async findReceivedInvitations(userId: number) {
+        const invitations = await this.prisma.shareInvitation.findMany({
+            where: {
+                receiverId: userId,
+                status: ShareInvitationStatus.PENDING,
+            },
+            select: {
+                id:true,
+                status: true,
+                createdAt: true,
+
+                owner: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true
+                        }
+                    },
+                
+                _count: {
+                    select: {
+                        items: true
+                    }
+                }
+            }
+        });
+
+        return invitations.map(({ _count, ...invitation }) => ({
+            ...invitation,
+            linksCount: _count.items,
+        }));
+    }
 }
