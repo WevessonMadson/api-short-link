@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateShareInvitationDto } from './dto/share/create-share-invitation.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { ShareInvitationStatus } from '@prisma/client';
+import { ShareInvitation, ShareInvitationLink, ShareInvitationStatus, SharePermission } from '@prisma/client';
 
 @Injectable()
 export class CollaborationService {
@@ -116,6 +116,29 @@ export class CollaborationService {
         return invitation;
     }
 
+    private async acceptInvitationTransaction(invitation: ShareInvitation & { items: ShareInvitationLink[] }) {
+        await this.prisma.$transaction(async (tx) => {
+            await tx.sharedLink.createMany({
+                data: invitation.items.map((item) => ({
+                    invitationId: invitation.id,
+                    linkId: item.linkId,
+                    receiverId: invitation.receiverId,
+                    permission: SharePermission.VIEW,
+                })),
+            });
+
+            await tx.shareInvitation.update({
+                where: {
+                    id: invitation.id,
+                },
+                data: {
+                    status: ShareInvitationStatus.ACCEPTED,
+                    acceptedAt: new Date(),
+                },
+            });
+        });
+    }
+
     async share(user: { userId: number, email: string }, dto: CreateShareInvitationDto) {
         await this.validateSelfShare(user.email, dto.emails);
 
@@ -145,18 +168,18 @@ export class CollaborationService {
                 status: ShareInvitationStatus.PENDING,
             },
             select: {
-                id:true,
+                id: true,
                 status: true,
                 createdAt: true,
 
                 owner: {
-                        select: {
-                            id: true,
-                            name: true,
-                            email: true
-                        }
-                    },
-                
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true
+                    }
+                },
+
                 _count: {
                     select: {
                         items: true
@@ -173,6 +196,8 @@ export class CollaborationService {
 
     async acceptInvitation(userId: number, invitationId: number) {
         const invitation = await this.findPendingInvitation(userId, invitationId);
+
+        await this.acceptInvitationTransaction(invitation);
 
         return invitation;
     }
