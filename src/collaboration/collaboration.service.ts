@@ -49,12 +49,25 @@ export class CollaborationService {
         return foundIds;
     }
 
+    private async createInvitation(ownerId: number, receiverId: number) {
+        return await this.prisma.shareInvitation.create({
+            data: {
+                ownerId,
+                receiverId
+            }
+        });
+    }
+
     async share(user: { userId: number, email: string } , dto: CreateShareInvitationDto) {
         await this.validateSelfShare(user.email, dto.emails);
         
         const users = await this.validateEmails(dto.emails);
 
         const foundLinks = await this.validateLinks(user.userId, dto.linkIds);
+
+        for (const userFound of users) {
+            await this.createInvitation(user.userId, userFound.id);
+        }
 
         return {
             success: true,
