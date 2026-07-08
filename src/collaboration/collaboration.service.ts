@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateShareInvitationDto } from './dto/share/create-share-invitation.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { ShareInvitationStatus } from '@prisma/client';
 
 @Injectable()
 export class CollaborationService {
@@ -67,12 +68,27 @@ export class CollaborationService {
         });
     }
 
+    private async validatePendingInvitations(ownerId: number, receiverIds: number[]) {
+        const pendingInvitation = await this.prisma.shareInvitation.findFirst({
+            where: {
+                receiverId: { in: receiverIds },
+                ownerId,
+                status: ShareInvitationStatus.PENDING
+            },
+            select: { id: true }, 
+        });
+
+        if (pendingInvitation) throw new BadRequestException("Destinatário ainda tem convite pendente.");
+    }
+
     async share(user: { userId: number, email: string }, dto: CreateShareInvitationDto) {
         await this.validateSelfShare(user.email, dto.emails);
 
         const users = await this.validateEmails(dto.emails);
 
         const foundLinks = await this.validateLinks(user.userId, dto.linkIds);
+
+        await this.validatePendingInvitations(user.userId, users.map(user => user.id));
 
         for (const userFound of users) {
             await this.createInvitationWithLinks(user.userId, userFound.id, dto.linkIds);
