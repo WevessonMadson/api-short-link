@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateShareInvitationDto } from './dto/share/create-share-invitation.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ShareInvitationStatus } from '@prisma/client';
@@ -99,6 +99,23 @@ export class CollaborationService {
         if (sharedLink) throw new BadRequestException("Um ou mais links já estão compartilhados com um dos destinatários.");
     }
 
+    private async findPendingInvitation(receiverId: number, invitationId: number) {
+        const invitation = await this.prisma.shareInvitation.findFirst({
+            where: {
+                receiverId,
+                status: ShareInvitationStatus.PENDING,
+                id: invitationId,
+            },
+            include: {
+                items: true,
+            },
+        });
+
+        if (!invitation) throw new NotFoundException("Convite não encontrado.");
+
+        return invitation;
+    }
+
     async share(user: { userId: number, email: string }, dto: CreateShareInvitationDto) {
         await this.validateSelfShare(user.email, dto.emails);
 
@@ -152,5 +169,11 @@ export class CollaborationService {
             ...invitation,
             linksCount: _count.items,
         }));
+    }
+
+    async acceptInvitation(userId: number, invitationId: number) {
+        const invitation = await this.findPendingInvitation(userId, invitationId);
+
+        return invitation;
     }
 }

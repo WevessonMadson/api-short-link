@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Req, UseGuards } from '@nestjs/common';
 import { CollaborationService } from './collaboration.service';
 import { CreateShareInvitationDto } from './dto/share/create-share-invitation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -19,6 +19,12 @@ export class CollaborationController {
   @UseGuards(JwtAuthGuard)
   @Get('invitations')
   findReceivedInvitations(@Req() req: any) {
-    return this.collaborationService.findReceivedInvitations(req.user.id);
+    return this.collaborationService.findReceivedInvitations(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('invitations/:id/accept')
+  acceptInvitation(@Param('id', ParseIntPipe) invitationId: number, @Req() req: any) {
+    return this.collaborationService.acceptInvitation(req.user.userId, invitationId);
   }
 }
