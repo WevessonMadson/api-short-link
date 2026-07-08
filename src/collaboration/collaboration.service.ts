@@ -26,7 +26,7 @@ export class CollaborationService {
 
         return users;
     }
-    
+
     private async validateSelfShare(email: string, emails: string[]) {
         if (emails.includes(email)) {
             throw new BadRequestException(
@@ -49,35 +49,33 @@ export class CollaborationService {
         return foundIds;
     }
 
-    private async createInvitation(ownerId: number, receiverId: number) {
-        return await this.prisma.shareInvitation.create({
-            data: {
-                ownerId,
-                receiverId
-            }
+    private async createInvitationWithLinks(ownerId: number, receiverId: number, linkIds: number[]) {
+        await this.prisma.$transaction(async (tx) => {
+            const invitation = await tx.shareInvitation.create({
+                data: {
+                    ownerId,
+                    receiverId
+                },
+            });
+
+            await tx.shareInvitationLink.createMany({
+                data: linkIds.map(linkId => ({
+                    invitationId: invitation.id,
+                    linkId,
+                })),
+            });
         });
     }
 
-    private async createInvitationLinks(invitationId: number, linkIds: number[]) {
-        await this.prisma.shareInvitationLink.createMany({
-            data: linkIds.map(linkId => ({
-                invitationId,
-                linkId,
-            })),
-        });
-    }
-
-    async share(user: { userId: number, email: string } , dto: CreateShareInvitationDto) {
+    async share(user: { userId: number, email: string }, dto: CreateShareInvitationDto) {
         await this.validateSelfShare(user.email, dto.emails);
-        
+
         const users = await this.validateEmails(dto.emails);
 
         const foundLinks = await this.validateLinks(user.userId, dto.linkIds);
 
         for (const userFound of users) {
-            const invitation = await this.createInvitation(user.userId, userFound.id);
-
-            await this.createInvitationLinks(invitation.id, dto.linkIds);
+            await this.createInvitationWithLinks(user.userId, userFound.id, dto.linkIds);
         }
 
         return {
