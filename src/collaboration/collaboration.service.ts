@@ -75,10 +75,28 @@ export class CollaborationService {
                 ownerId,
                 status: ShareInvitationStatus.PENDING
             },
-            select: { id: true }, 
+            select: { id: true },
         });
 
         if (pendingInvitation) throw new BadRequestException("Destinatário ainda tem convite pendente.");
+    }
+
+    private async validateSharedLinks(receiverIds: number[], linkIds: number[]) {
+        const sharedLink = await this.prisma.sharedLink.findFirst({
+            where: {
+                receiverId: {
+                    in: receiverIds,
+                },
+                linkId: {
+                    in: linkIds,
+                },
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (sharedLink) throw new BadRequestException("Um ou mais links já estão compartilhados com um dos destinatários.");
     }
 
     async share(user: { userId: number, email: string }, dto: CreateShareInvitationDto) {
@@ -89,6 +107,8 @@ export class CollaborationService {
         const foundLinks = await this.validateLinks(user.userId, dto.linkIds);
 
         await this.validatePendingInvitations(user.userId, users.map(user => user.id));
+
+        await this.validateSharedLinks(users.map(user => user.id), dto.linkIds);
 
         for (const userFound of users) {
             await this.createInvitationWithLinks(user.userId, userFound.id, dto.linkIds);
