@@ -101,10 +101,27 @@ export class CollaborationService {
         if (sharedLink) throw new BadRequestException("Um ou mais links já estão compartilhados com um dos destinatários.");
     }
 
-    private async findPendingInvitation(receiverId: number, invitationId: number) {
+    private async findPendingInvitationForReceiver(receiverId: number, invitationId: number) {
         const invitation = await this.prisma.shareInvitation.findFirst({
             where: {
                 receiverId,
+                status: ShareInvitationStatus.PENDING,
+                id: invitationId,
+            },
+            include: {
+                items: true,
+            },
+        });
+
+        if (!invitation) throw new NotFoundException("Convite não encontrado.");
+
+        return invitation;
+    }
+
+    private async findPendingInvitationForOwner(ownerId: number, invitationId: number) {
+        const invitation = await this.prisma.shareInvitation.findFirst({
+            where: {
+                ownerId,
                 status: ShareInvitationStatus.PENDING,
                 id: invitationId,
             },
@@ -198,7 +215,7 @@ export class CollaborationService {
     }
 
     async acceptInvitation(userId: number, invitationId: number) {
-        const invitation = await this.findPendingInvitation(userId, invitationId);
+        const invitation = await this.findPendingInvitationForReceiver(userId, invitationId);
 
         await this.acceptInvitationTransaction(invitation);
 
@@ -206,7 +223,7 @@ export class CollaborationService {
     }
 
     async rejectInvitation(userId: number, invitationId: number) {
-        const invitation = await this.findPendingInvitation(userId, invitationId);
+        const invitation = await this.findPendingInvitationForReceiver(userId, invitationId);
 
         await this.prisma.shareInvitation.update({
             where: {
@@ -255,5 +272,22 @@ export class CollaborationService {
             user: owner,
             linksCount: _count.items,
         }));
+    }
+
+    async cancelInvitation(userId: number, invitationId: number) {
+        const invitation = await this.findPendingInvitationForOwner(userId, invitationId);
+
+        await this.prisma.shareInvitation.update({
+            where: {
+                id: invitation.id
+            },
+
+            data: {
+                status: ShareInvitationStatus.CANCELLED,
+                cancelledAt: new Date(),
+            }
+        });
+
+        return { success: true }
     }
 }

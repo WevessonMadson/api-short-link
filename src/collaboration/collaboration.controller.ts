@@ -35,4 +35,9 @@ export class CollaborationController {
   findSentInvitations(@Req() req: any) {
     return this.collaborationService.findSentInvitations(req.user.userId);
   }
+
+  @Post('invitations/:id/cancel')
+  cancelInvitation(@Param('id', ParseIntPipe) invitationId: number, @Req() req: any) {
+    return this.collaborationService.cancelInvitation(req.user.userId, invitationId);
+  }
 }
