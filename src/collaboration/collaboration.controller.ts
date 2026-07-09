@@ -16,7 +16,7 @@ export class CollaborationController {
     return this.collaborationService.share(req.user, dto);
   }
 
-  @Get('invitations')
+  @Get('invitations/received')
   findReceivedInvitations(@Req() req: any) {
     return this.collaborationService.findReceivedInvitations(req.user.userId);
   }
