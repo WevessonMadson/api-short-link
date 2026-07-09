@@ -33,4 +33,10 @@ export class CollaborationController {
   rejectInvitation(@Param('id', ParseIntPipe) invitationId: number, @Req() req: any) {
     return this.collaborationService.rejectInvitation(req.user.userId, invitationId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('invitations/sent')
+  findSendedInvitations(@Req() req: any) {
+    return this.collaborationService.findSendedInvitations(req.user.userId);
+  }
 }
