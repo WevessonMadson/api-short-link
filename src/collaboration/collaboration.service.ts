@@ -174,7 +174,7 @@ export class CollaborationService {
                 status: true,
                 createdAt: true,
 
-                user: {
+                receiver: {
                     select: {
                         id: true,
                         name: true,
@@ -190,8 +190,9 @@ export class CollaborationService {
             }
         });
 
-        return invitations.map(({ _count, ...invitation }) => ({
+        return invitations.map(({ _count, receiver, ...invitation }) => ({
             ...invitation,
+            user: receiver,
             linksCount: _count.items,
         }));
     }
@@ -222,7 +223,7 @@ export class CollaborationService {
 
     }
 
-    async findSendedInvitations(userId: number) {
+    async findSentInvitations(userId: number) {
         const invitations = await this.prisma.shareInvitation.findMany({
             where: {
                 ownerId: userId,
@@ -233,7 +234,7 @@ export class CollaborationService {
                 status: true,
                 createdAt: true,
 
-                user: {
+                owner: {
                     select: {
                         id: true,
                         name: true,
@@ -249,8 +250,9 @@ export class CollaborationService {
             }
         });
 
-        return invitations.map(({ _count, ...invitation }) => ({
+        return invitations.map(({ _count, owner, ...invitation }) => ({
             ...invitation,
+            user: owner,
             linksCount: _count.items,
         }));
     }
