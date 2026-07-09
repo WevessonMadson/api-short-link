@@ -202,7 +202,7 @@ export class CollaborationService {
 
         await this.acceptInvitationTransaction(invitation);
 
-        return invitation;
+        return { success: true };
     }
 
     async rejectInvitation(userId: number, invitationId: number) {
