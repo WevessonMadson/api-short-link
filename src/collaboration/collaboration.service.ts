@@ -125,7 +125,7 @@ export class CollaborationService {
                     invitationId: invitation.id,
                     linkId: item.linkId,
                     receiverId: invitation.receiverId,
-                    permission: SharePermission.VIEW,
+                    permission: invitation.permission,
                 })),
             });
 
