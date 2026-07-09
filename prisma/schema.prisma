@@ -67,6 +67,8 @@ model ShareInvitation {
 
   items ShareInvitationLink[]
 
+  permission SharePermission
+
   @@index([ownerId])
   @@index([receiverId])
   @@index([status])
