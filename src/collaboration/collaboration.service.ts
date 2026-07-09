@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreateShareInvitationDto } from './dto/share/create-share-invitation.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ShareInvitation, ShareInvitationLink, ShareInvitationStatus, SharePermission } from '@prisma/client';
+import { permission } from 'process';
 
 @Injectable()
 export class CollaborationService {
@@ -50,12 +51,13 @@ export class CollaborationService {
         return foundIds;
     }
 
-    private async createInvitationWithLinks(ownerId: number, receiverId: number, linkIds: number[]) {
+    private async createInvitationWithLinks(ownerId: number, receiverId: number, linkIds: number[], permission: SharePermission) {
         await this.prisma.$transaction(async (tx) => {
             const invitation = await tx.shareInvitation.create({
                 data: {
                     ownerId,
-                    receiverId
+                    receiverId,
+                    permission,
                 },
             });
 
@@ -151,7 +153,7 @@ export class CollaborationService {
         await this.validateSharedLinks(users.map(user => user.id), dto.linkIds);
 
         for (const userFound of users) {
-            await this.createInvitationWithLinks(user.userId, userFound.id, dto.linkIds);
+            await this.createInvitationWithLinks(user.userId, userFound.id, dto.linkIds, dto.permission);
         }
 
         return {
