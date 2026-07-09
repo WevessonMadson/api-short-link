@@ -174,7 +174,7 @@ export class CollaborationService {
                 status: true,
                 createdAt: true,
 
-                owner: {
+                user: {
                     select: {
                         id: true,
                         name: true,
