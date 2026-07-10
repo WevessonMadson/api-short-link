@@ -40,4 +40,9 @@ export class CollaborationController {
   cancelInvitation(@Param('id', ParseIntPipe) invitationId: number, @Req() req: any) {
     return this.collaborationService.cancelInvitation(req.user.userId, invitationId);
   }
+
+  @Get('shared-links-for-me')
+  findSharedForMe(@Req() req: any) {
+    return this.collaborationService.findSharedForMe(req.user.userId);
+  }
 }

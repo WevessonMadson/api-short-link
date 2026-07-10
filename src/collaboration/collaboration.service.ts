@@ -290,4 +290,30 @@ export class CollaborationService {
 
         return { success: true }
     }
+
+    async findSharedForMe(userId: number) {
+        return await this.prisma.sharedLink.findMany({
+            where: {
+                receiverId: userId,
+            },
+
+            select: {
+                id: true,
+                permission: true,
+                createdAt: true,
+
+                link: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                            },
+                        },
+                    },
+                },
+            }
+        });
+    }
 }
