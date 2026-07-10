@@ -316,4 +316,38 @@ export class CollaborationService {
             }
         });
     }
+    
+    async findSharedByMe(userId: number) {
+        return await this.prisma.sharedLink.findMany({
+            where: {
+                link: {
+                    userId
+                }
+            },
+
+            select: {
+                id: true,
+                permission: true,
+                createdAt: true,
+
+                receiver: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+
+                link: {
+                    select: {
+                        id: true,
+                        originalUrl: true,
+                        shortCode: true,
+                        clicks: true,
+                        createdAt: true,
+                    },
+                },
+            }
+        });
+    }
 }

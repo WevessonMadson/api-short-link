@@ -45,4 +45,9 @@ export class CollaborationController {
   findSharedForMe(@Req() req: any) {
     return this.collaborationService.findSharedForMe(req.user.userId);
   }
+
+  @Get('shared-links-by-me')
+  findSharedByMe(@Req() req: any) {
+    return this.collaborationService.findSharedByMe(req.user.userId);
+  }
 }
