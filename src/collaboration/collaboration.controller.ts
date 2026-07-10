@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { CollaborationService } from './collaboration.service';
 import { CreateShareInvitationDto } from './dto/share/create-share-invitation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -58,5 +58,13 @@ export class CollaborationController {
     @Body() dto: { permission: SharePermission }, 
     @Req() req: any) {
       return this.collaborationService.updatePermissionSharedLink(sharedLinkId, dto.permission, req.user.userId);
+  }
+
+  @Delete('shared-links/:id')
+  removeSharedAccess(
+    @Param('id', ParseIntPipe) sharedLinkId: number,
+    @Req() req: any
+  ) {
+    return this.collaborationService.removeSharedAccess(sharedLinkId, req.user.userId);
   }
 }

@@ -369,4 +369,19 @@ export class CollaborationService {
 
         return { success: true }
     }
+
+    async removeSharedAccess(sharedLinkId: number, userId: number) {
+        const result = await this.prisma.sharedLink.deleteMany({
+            where: {
+                id: sharedLinkId,
+                link: {
+                    userId,
+                },
+            },
+        });
+
+        if (result.count === 0) throw new NotFoundException("Compartilhamento não encontrado.");
+
+        return { success: true }
+    }
 }
