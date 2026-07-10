@@ -1,8 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateShareInvitationDto } from './dto/share/create-share-invitation.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateShareInvitationDto } from './dto/share/create-share-invitation.dto';
 import { ShareInvitation, ShareInvitationLink, ShareInvitationStatus, SharePermission } from '@prisma/client';
-import { permission } from 'process';
 
 @Injectable()
 export class CollaborationService {
@@ -316,7 +315,7 @@ export class CollaborationService {
             }
         });
     }
-    
+
     async findSharedByMe(userId: number) {
         return await this.prisma.sharedLink.findMany({
             where: {
@@ -349,5 +348,25 @@ export class CollaborationService {
                 },
             }
         });
+    }
+
+    async updatePermissionSharedLink(sharedLinkId: number, permission: SharePermission, userId: number) {
+        console.log(permission)
+        const result = await this.prisma.sharedLink.updateMany({
+            where: {
+                id: sharedLinkId,
+                link: {
+                    userId,
+                },
+            },
+
+            data: {
+                permission,
+            }
+        });
+
+        if (result.count === 0) throw new NotFoundException("Compartilhamento não encontrado.");
+
+        return { success: true }
     }
 }

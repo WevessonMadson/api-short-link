@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { CollaborationService } from './collaboration.service';
 import { CreateShareInvitationDto } from './dto/share/create-share-invitation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SharePermission } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard)
 @Controller('collaboration')
@@ -30,7 +31,7 @@ export class CollaborationController {
   rejectInvitation(@Param('id', ParseIntPipe) invitationId: number, @Req() req: any) {
     return this.collaborationService.rejectInvitation(req.user.userId, invitationId);
   }
-  
+
   @Get('invitations/sent')
   findSentInvitations(@Req() req: any) {
     return this.collaborationService.findSentInvitations(req.user.userId);
@@ -49,5 +50,13 @@ export class CollaborationController {
   @Get('shared-links-by-me')
   findSharedByMe(@Req() req: any) {
     return this.collaborationService.findSharedByMe(req.user.userId);
+  }
+
+  @Put('shared-links/:id/permission')
+  updatePermissionSharedLink(
+    @Param('id', ParseIntPipe) sharedLinkId: number, 
+    @Body() dto: { permission: SharePermission }, 
+    @Req() req: any) {
+      return this.collaborationService.updatePermissionSharedLink(sharedLinkId, dto.permission, req.user.userId);
   }
 }
