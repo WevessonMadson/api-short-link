@@ -3,6 +3,7 @@ import { CollaborationService } from './collaboration.service';
 import { CreateShareInvitationDto } from './dto/share/create-share-invitation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SharePermission } from '@prisma/client';
+import { UpdateSharePermissionDto } from './dto/share/update-share-permission.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('collaboration')
@@ -55,7 +56,7 @@ export class CollaborationController {
   @Put('shared-links/:id/permission')
   updatePermissionSharedLink(
     @Param('id', ParseIntPipe) sharedLinkId: number, 
-    @Body() dto: { permission: SharePermission }, 
+    @Body() dto: UpdateSharePermissionDto, 
     @Req() req: any) {
       return this.collaborationService.updatePermissionSharedLink(sharedLinkId, dto.permission, req.user.userId);
   }

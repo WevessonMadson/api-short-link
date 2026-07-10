@@ -7,6 +7,10 @@ import { ShareInvitation, ShareInvitationLink, ShareInvitationStatus, SharePermi
 export class CollaborationService {
     constructor(private readonly prisma: PrismaService) { };
 
+    // ===========================
+    // Validações privadas
+    // ===========================
+
     private async validateEmails(emails: string[]) {
         const users = await this.prisma.user.findMany({
             where: {
@@ -46,27 +50,6 @@ export class CollaborationService {
         });
 
         if (foundIds.length < linkIds.length) throw new BadRequestException("Um ou mais links são inválidos ou não pertencem a você.");
-
-        return foundIds;
-    }
-
-    private async createInvitationWithLinks(ownerId: number, receiverId: number, linkIds: number[], permission: SharePermission) {
-        await this.prisma.$transaction(async (tx) => {
-            const invitation = await tx.shareInvitation.create({
-                data: {
-                    ownerId,
-                    receiverId,
-                    permission,
-                },
-            });
-
-            await tx.shareInvitationLink.createMany({
-                data: linkIds.map(linkId => ({
-                    invitationId: invitation.id,
-                    linkId,
-                })),
-            });
-        });
     }
 
     private async validatePendingInvitations(ownerId: number, receiverIds: number[]) {
@@ -134,6 +117,29 @@ export class CollaborationService {
         return invitation;
     }
 
+    // ===========================
+    // Transactions privadas
+    // ===========================
+
+    private async createInvitationWithLinks(ownerId: number, receiverId: number, linkIds: number[], permission: SharePermission) {
+        await this.prisma.$transaction(async (tx) => {
+            const invitation = await tx.shareInvitation.create({
+                data: {
+                    ownerId,
+                    receiverId,
+                    permission,
+                },
+            });
+
+            await tx.shareInvitationLink.createMany({
+                data: linkIds.map(linkId => ({
+                    invitationId: invitation.id,
+                    linkId,
+                })),
+            });
+        });
+    }
+
     private async acceptInvitationTransaction(invitation: ShareInvitation & { items: ShareInvitationLink[] }) {
         await this.prisma.$transaction(async (tx) => {
             await tx.sharedLink.createMany({
@@ -157,12 +163,16 @@ export class CollaborationService {
         });
     }
 
+    // ===========================
+    // Compartilhamento
+    // ===========================
+
     async share(user: { userId: number, email: string }, dto: CreateShareInvitationDto) {
         await this.validateSelfShare(user.email, dto.emails);
 
         const users = await this.validateEmails(dto.emails);
 
-        const foundLinks = await this.validateLinks(user.userId, dto.linkIds);
+        await this.validateLinks(user.userId, dto.linkIds);
 
         await this.validatePendingInvitations(user.userId, users.map(user => user.id));
 
@@ -172,77 +182,17 @@ export class CollaborationService {
             await this.createInvitationWithLinks(user.userId, userFound.id, dto.linkIds, dto.permission);
         }
 
-        return {
-            success: true,
-            users,
-            foundLinks
-        };
+        return { success: true }
     };
+
+    // ===========================
+    // Convites
+    // ===========================
 
     async findReceivedInvitations(userId: number) {
         const invitations = await this.prisma.shareInvitation.findMany({
             where: {
                 receiverId: userId,
-                status: ShareInvitationStatus.PENDING,
-            },
-            select: {
-                id: true,
-                status: true,
-                createdAt: true,
-
-                receiver: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
-                },
-
-                _count: {
-                    select: {
-                        items: true
-                    }
-                }
-            }
-        });
-
-        return invitations.map(({ _count, receiver, ...invitation }) => ({
-            ...invitation,
-            user: receiver,
-            linksCount: _count.items,
-        }));
-    }
-
-    async acceptInvitation(userId: number, invitationId: number) {
-        const invitation = await this.findPendingInvitationForReceiver(userId, invitationId);
-
-        await this.acceptInvitationTransaction(invitation);
-
-        return { success: true };
-    }
-
-    async rejectInvitation(userId: number, invitationId: number) {
-        const invitation = await this.findPendingInvitationForReceiver(userId, invitationId);
-
-        await this.prisma.shareInvitation.update({
-            where: {
-                id: invitationId
-            },
-
-            data: {
-                status: ShareInvitationStatus.REJECTED,
-                rejectedAt: new Date(),
-            }
-        });
-
-        return { sucess: true }
-
-    }
-
-    async findSentInvitations(userId: number) {
-        const invitations = await this.prisma.shareInvitation.findMany({
-            where: {
-                ownerId: userId,
                 status: ShareInvitationStatus.PENDING,
             },
             select: {
@@ -273,6 +223,66 @@ export class CollaborationService {
         }));
     }
 
+    async acceptInvitation(userId: number, invitationId: number) {
+        const invitation = await this.findPendingInvitationForReceiver(userId, invitationId);
+
+        await this.acceptInvitationTransaction(invitation);
+
+        return { success: true };
+    }
+
+    async rejectInvitation(userId: number, invitationId: number) {
+        const invitation = await this.findPendingInvitationForReceiver(userId, invitationId);
+
+        await this.prisma.shareInvitation.update({
+            where: {
+                id: invitation.id
+            },
+
+            data: {
+                status: ShareInvitationStatus.REJECTED,
+                rejectedAt: new Date(),
+            }
+        });
+
+        return { success: true }
+
+    }
+
+    async findSentInvitations(userId: number) {
+        const invitations = await this.prisma.shareInvitation.findMany({
+            where: {
+                ownerId: userId,
+                status: ShareInvitationStatus.PENDING,
+            },
+            select: {
+                id: true,
+                status: true,
+                createdAt: true,
+
+                receiver: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true
+                    }
+                },
+
+                _count: {
+                    select: {
+                        items: true
+                    }
+                }
+            }
+        });
+
+        return invitations.map(({ _count, receiver, ...invitation }) => ({
+            ...invitation,
+            user: receiver,
+            linksCount: _count.items,
+        }));
+    }
+
     async cancelInvitation(userId: number, invitationId: number) {
         const invitation = await this.findPendingInvitationForOwner(userId, invitationId);
 
@@ -289,6 +299,10 @@ export class CollaborationService {
 
         return { success: true }
     }
+
+    // ===========================
+    // SharedLinks
+    // ===========================
 
     async findSharedForMe(userId: number) {
         return await this.prisma.sharedLink.findMany({
@@ -351,7 +365,6 @@ export class CollaborationService {
     }
 
     async updatePermissionSharedLink(sharedLinkId: number, permission: SharePermission, userId: number) {
-        console.log(permission)
         const result = await this.prisma.sharedLink.updateMany({
             where: {
                 id: sharedLinkId,
