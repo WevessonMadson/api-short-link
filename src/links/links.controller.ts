@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { LinksService } from './links.service';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -37,5 +37,12 @@ export class LinksController {
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.linksService.remove(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put(':id/other-user')
+  updateByOtherUser(@Param('id', ParseIntPipe) idSharedLink: number, @Req() req: any, @Body() updateLinkDto: UpdateLinkDto) {
+    console.log(updateLinkDto)
+    return this.linksService.updateByOtherUser(req.user.userId, idSharedLink, updateLinkDto);
   }
 }

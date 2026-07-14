@@ -3,10 +3,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { randomBytes } from 'crypto';
 import { UpdateLinkDto } from './dto/update-link.dto';
+import { CollaborationService } from '../collaboration/collaboration.service';
 
 @Injectable()
 export class LinksService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private collaboration: CollaborationService) { }
 
   private generateShortCode(length = 6) {
     return randomBytes(length).toString('base64url').substring(0, length);
@@ -77,5 +78,21 @@ export class LinksService {
 
   async remove(id: number) {
     return this.prisma.link.delete({ where: { id } });
+  }
+
+  async updateByOtherUser(userId: number, idSharedLink: number, updateLinkDto: UpdateLinkDto) {
+    const sharedLink = await this.collaboration.canUserEdit(userId, idSharedLink);
+
+    await this.prisma.link.update({
+      where: {
+        id: sharedLink.linkId,
+      },
+
+      data: {
+        originalUrl: updateLinkDto.originalUrl,
+      },
+    });
+
+    return { success: true }
   }
 }

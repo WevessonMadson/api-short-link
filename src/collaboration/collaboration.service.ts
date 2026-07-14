@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateShareInvitationDto } from './dto/share/create-share-invitation.dto';
 import { ShareInvitation, ShareInvitationLink, ShareInvitationStatus, SharePermission } from '@prisma/client';
@@ -115,6 +115,28 @@ export class CollaborationService {
         if (!invitation) throw new NotFoundException("Convite não encontrado.");
 
         return invitation;
+    }
+
+    // ===========================
+    // Validações compartilhadas
+    // ===========================
+
+    async canUserEdit(receiverId: number, idSharedLink: number) {
+        const sharedLink = await this.prisma.sharedLink.findFirst({
+            where: {
+                id: idSharedLink,
+                receiverId,
+                permission: SharePermission.EDIT,
+            },
+
+            select: {
+                linkId: true,
+            },
+        });
+
+        if (!sharedLink) throw new ForbiddenException("Você não tem permissão.");
+
+        return sharedLink;
     }
 
     // ===========================
