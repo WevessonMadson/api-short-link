@@ -42,7 +42,6 @@ export class LinksController {
   @UseGuards(JwtAuthGuard)
   @Put(':id/other-user')
   updateByOtherUser(@Param('id', ParseIntPipe) idSharedLink: number, @Req() req: any, @Body() updateLinkDto: UpdateLinkDto) {
-    console.log(updateLinkDto)
     return this.linksService.updateByOtherUser(req.user.userId, idSharedLink, updateLinkDto);
   }
 }
