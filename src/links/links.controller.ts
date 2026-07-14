@@ -29,8 +29,8 @@ export class LinksController {
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
-  update(@Param('id') id: number, @Body() updateLinkDto: UpdateLinkDto) {
-    return this.linksService.update(id, updateLinkDto);
+  update(@Param('id') id: number, @Body() updateLinkDto: UpdateLinkDto, @Req() req: any) {
+    return this.linksService.update(id, updateLinkDto, req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard)

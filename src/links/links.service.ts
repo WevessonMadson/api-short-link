@@ -57,7 +57,7 @@ export class LinksService {
     return link;
   }
 
-  async update(id: number, updateLinkDto: UpdateLinkDto) {
+  async update(id: number, updateLinkDto: UpdateLinkDto, userId: number) {
     if (updateLinkDto.shortCode) {
       const link = await this.prisma.link.findFirst({ 
         where: {
@@ -69,6 +69,15 @@ export class LinksService {
         });
       if (link) throw new ConflictException('esse código personalizado já é usado');
     }
+
+    const linkId = await this.prisma.link.findFirst( {
+      where: {
+        id,
+        userId
+      }
+    });
+    
+    if (!linkId) throw new ForbiddenException("Você não tem permissão.");
 
     return this.prisma.link.update({
       where: { id },
