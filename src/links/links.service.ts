@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { randomBytes } from 'crypto';
@@ -76,8 +76,17 @@ export class LinksService {
     });
   }
 
-  async remove(id: number) {
-    return this.prisma.link.delete({ where: { id } });
+  async remove(id: number, userId: number) {
+    const link = await this.prisma.link.findFirst({
+      where: {
+        id,
+        userId,
+      }
+    });
+
+    if (!link) throw new ForbiddenException("Você não tem permissão.");
+
+    return this.prisma.link.delete({ where: { id, userId } });
   }
 
   async updateByOtherUser(userId: number, idSharedLink: number, updateLinkDto: UpdateLinkDto) {

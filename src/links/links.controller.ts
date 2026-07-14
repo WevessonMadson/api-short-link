@@ -35,8 +35,8 @@ export class LinksController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.linksService.remove(id);
+  remove(@Param('id') id: number, @Req() req: any) {
+    return this.linksService.remove(id, req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard)
